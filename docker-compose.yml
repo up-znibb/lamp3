@@ -1,0 +1,41 @@
+version: '3.7'
+services:
+  php-httpd:
+    build:
+      context: ./php-httpd
+    ports:
+      - 80:80
+    volumes:
+      - "~/path/to/your/project:/var/www/html"
+    container_name: php-apache
+    links:
+        - 'mariadb:db'
+
+  mariadb:
+    build:
+      context: ./database
+    restart: unless-stopped
+    volumes:
+      - "./database/config/my.cnf:/etc/mysql/conf.d/100-custom.cnf"
+      - mariadb-volume:/var/lib/mysql
+    environment:
+      TZ: "Europe/Stockholm"          # Tidszon
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+      MYSQL_ROOT_PASSWORD: "root123"  # Lösenord för root-användare
+      MYSQL_USER: 'admin'             # Användarnamn för ytterligare en användare
+      MYSQL_PASSWORD: 'hejsan123'     # Lösenord för denna användare
+      MYSQL_DATABASE: 'hejsan'        # Namnet på databasen som skall skapas
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - 'mariadb:db'
+    ports:
+      - 8081:80
+    container_name: phpmyadmin-lamp
+
+volumes:
+  mariadb-volume:
